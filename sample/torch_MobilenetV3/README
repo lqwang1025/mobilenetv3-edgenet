@@ -1,0 +1,45 @@
+## data set
+  /mldb/dataset/ImageNet
+
+## data preprocess
+  1). data channel order: RGB(0~255)
+  2). resize: 224 * 224(H * W)
+  3). mean: [127.5f, 127.5f, 127.5f]
+  4). scale:[0.0078431372549, 0.0078431372549, 0.0078431372549]
+
+## Environment
+  $ conda create -n tmp python=3.6
+  $ pip install /mllib/db/pytorch-whl/torch-1.1.0-cp36-cp36m-linux_x86_64.whl
+  $ pip install torchvision==0.3
+  $ conda install pyyaml
+  $ pip install pillow==5.0
+  $ pip install onnx
+  $ pip install future
+  $ pip install onnxruntime
+
+## Training and Testing Network
+  1.Training the network
+    $ cd code/train/
+    $ python train.py /mllib/dataset/ImageNet/raw-data
+      --model tf_mobilenetv3_small_075 --sched cosine --epochs 150 --warmup-epochs 5 
+      --lr 0.4 --reprob 0.5 --remode pixel --batch-size 4
+
+  2. Test the network
+    $ cd test/
+    $ python validate.py /mllib/dataset/ImageNet/raw-data/validation 
+              --model tf_mobilenetv3_small_075 -b 128 --checkpoint 
+              ../models/pth/tf_mobilenetv3_small_075.pth  
+              --img-size 224 --crop-pct 0.875 --interpolation bicubic
+
+  Among them, tf_mixnet_s is the model name (without suffix), and checkpoint is the location where the model is saved
+
+## Second, pth model to onnx model and test
+  1. pth model to onnx model
+    $ cd tools
+    $ python onnx_export.py 
+  Note that you need to modify the model_name, checkpoint, and onnx_path paths
+
+  2. onnx model test
+    $ cd test
+    $ python evaluate_onnx.py
+  Note that you need to modify the image_dir, onnx_path, and class_path paths
